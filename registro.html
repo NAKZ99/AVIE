@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - Agenda Virtual</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>AGENDA VIRTUAL</h2>
+        <h1>Crear nueva cuenta</h1>
+        
+        <form id="registroForm" onsubmit="return procesarRegistro(event)">
+            <div style="margin-bottom: 12px; text-align: left;">
+                <label for="nombre" style="display: block; margin-bottom: 5px; font-weight: bold;">Nombre Completo</label>
+                <input type="text" id="nombre" placeholder="Tu nombre y apellido" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+            </div>
+
+            <div style="margin-bottom: 12px; text-align: left;">
+                <label for="correo" style="display: block; margin-bottom: 5px; font-weight: bold;">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="ejemplo@correo.com" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                <span id="mensajeError" style="color: #e74c3c; font-size: 13px; display: none; margin-top: 5px;">Por favor, ingresa un correo electrónico válido.</span>
+            </div>
+
+            <div style="margin-bottom: 12px; text-align: left;">
+                <label for="rol" style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Cuenta</label>
+                <select id="rol" onchange="mostrarOpcionCurso()" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    <option value="">Selecciona tu rol...</option>
+                    <option value="profesor">👨‍🏫 Profesor</option>
+                    <option value="estudiante">👨‍🎓 Estudiante</option>
+                    <option value="padre">👨‍👩‍👦 Padre / Acudiente</option>
+                </select>
+            </div>
+
+            <!-- Campo desplegable para selección de curso (solo si es estudiante) -->
+            <div id="campo-curso-estudiante" style="margin-bottom: 12px; text-align: left; display: none;">
+                <label for="curso" style="display: block; margin-bottom: 5px; font-weight: bold;">Curso / Grado</label>
+                <select id="curso" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    <option value="">Selecciona tu curso...</option>
+                    <option value="11° A">11° A</option>
+                    <option value="11° B">11° B</option>
+                    <option value="10° A">10° A</option>
+                    <option value="10° B">10° B</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label for="contrasena" style="display: block; margin-bottom: 5px; font-weight: bold;">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Crea tu contraseña" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+            </div>
+
+            <button type="submit">Registrarme e Ingresar</button>
+        </form>
+
+        <p style="margin-top: 15px; font-size: 14px;">
+            ¿Ya tienes una cuenta? <a href="login.html" style="color: #2563eb; text-decoration: none; font-weight: bold;">Inicia sesión aquí</a>
+        </p>
+    </div>
+
+    <script>
+        function mostrarOpcionCurso() {
+            const rol = document.getElementById('rol').value;
+            const campoCurso = document.getElementById('campo-curso-estudiante');
+            if (rol === 'estudiante') {
+                campoCurso.style.display = 'block';
+                document.getElementById('curso').required = true;
+            } else {
+                campoCurso.style.display = 'none';
+                document.getElementById('curso').required = false;
+            }
+        }
+
+        function procesarRegistro(e) {
+            e.preventDefault();
+            
+            const nombreInput = document.getElementById('nombre').value.trim();
+            const correoInput = document.getElementById('correo').value.trim().toLowerCase();
+            const rolSeleccionado = document.getElementById('rol').value;
+            const cursoSeleccionado = document.getElementById('curso').value;
+            const contrasenaInput = document.getElementById('contrasena').value;
+            const mensajeError = document.getElementById('mensajeError');
+            
+            // 1. Validación de formato de correo
+            const patronCorreo = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!patronCorreo.test(correoInput)) {
+                mensajeError.style.display = 'block';
+                return false;
+            }
+            mensajeError.style.display = 'none';
+
+            // 2. Obtener usuarios guardados
+            let usuariosGuardados = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+
+            // 3. Validar existencia previa de correo o nombre
+            const existeCorreo = usuariosGuardados.some(u => u.correo === correoInput);
+            const existeNombre = usuariosGuardados.some(u => u.nombre.toLowerCase() === nombreInput.toLowerCase());
+
+            if (existeCorreo) {
+                alert('⚠️ Este correo electrónico ya está registrado.');
+                return false;
+            }
+
+            if (existeNombre) {
+                alert('⚠️ Ya existe un usuario registrado con este Nombre Completo.');
+                return false;
+            }
+
+            // 4. Guardar datos del usuario
+            const nuevoUsuario = {
+                nombre: nombreInput,
+                correo: correoInput,
+                rol: rolSeleccionado,
+                curso: rolSeleccionado === 'estudiante' ? cursoSeleccionado : '',
+                contrasena: contrasenaInput
+            };
+
+            usuariosGuardados.push(nuevoUsuario);
+            localStorage.setItem('usuariosAgenda', JSON.stringify(usuariosGuardados));
+            
+            // Guardar sesión activa
+            localStorage.setItem('usuarioActual', JSON.stringify(nuevoUsuario));
+
+            alert('¡Registro exitoso!');
+
+            // 5. Redirección
+            if (rolSeleccionado === 'profesor') {
+                window.location.href = 'profesor.html';
+            } else if (rolSeleccionado === 'estudiante') {
+                window.location.href = 'estudiante.html';
+            } else if (rolSeleccionado === 'padre') {
+                window.location.href = 'padre.html';
+            }
+        }
+    </script>
+
+</body>
+</html>

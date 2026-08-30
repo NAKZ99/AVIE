@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Padres - Agenda Virtual</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Encabezado -->
+        <header class="topbar">
+            <div>
+                <h2>Panel de Padres / Acudientes 👨‍👩‍👦</h2>
+                <p style="color: #666; font-size: 14px;">Seguimiento académico del estudiante</p>
+            </div>
+            <div>
+                <button onclick="location.href='perfil.html'" class="btn-role" style="width: auto; padding: 8px 12px; font-size: 14px; margin-right: 5px; cursor: pointer;">Mi Perfil ⚙️</button>
+                <button onclick="location.href='index.html'" class="btn-logout">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <!-- Formulario de consulta -->
+        <section class="card-section" style="margin-bottom: 20px;">
+            <h3>🔍 Consultar Datos del Estudiante</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Curso del Hijo/a:</label>
+                    <select id="padre-select-curso" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                        <option value="">Selecciona el curso...</option>
+                        <option value="11° A">11° A</option>
+                        <option value="11° B">11° B</option>
+                        <option value="10° A">10° A</option>
+                        <option value="10° B">10° B</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Nombre Completo del Estudiante:</label>
+                    <input type="text" id="padre-nombre-estudiante" placeholder="Ej: Juan Pérez" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                </div>
+            </div>
+            <button onclick="consultarHijo()" class="btn-primary" style="margin-top: 15px; width: 100%;">Buscar en Base de Datos</button>
+        </section>
+
+        <!-- Estado de Tareas del Estudiante -->
+        <section class="card-section">
+            <h3 id="titulo-reporte">📊 Estado de Actividades</h3>
+            <div id="contenedor-reporte-padre">
+                <p style="color: #666;">Ingresa los datos arriba para consultar si el estudiante está registrado.</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function consultarHijo() {
+            const cursoBuscado = document.getElementById('padre-select-curso').value;
+            const nombreBuscado = document.getElementById('padre-nombre-estudiante').value.trim();
+            const contenedor = document.getElementById('contenedor-reporte-padre');
+            const tituloReporte = document.getElementById('titulo-reporte');
+
+            if (!cursoBuscado || !nombreBuscado) {
+                alert("Por favor selecciona el curso e ingresa el nombre del estudiante.");
+                return;
+            }
+
+            // 1. Obtener usuarios registrados de la base de datos interna
+            const usuariosGuardados = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+
+            // 2. Buscar explícitamente un estudiante registrado con rol='estudiante'
+            const estudianteEncontrado = usuariosGuardados.find(u => 
+                u.rol === 'estudiante' && 
+                u.nombre.toLowerCase() === nombreBuscado.toLowerCase() &&
+                u.curso === cursoBuscado
+            );
+
+            // 3. Si no existe en la base de datos interna, denegar la visualización
+            if (!estudianteEncontrado) {
+                tituloReporte.innerText = `📊 Estado de Actividades`;
+                contenedor.innerHTML = `
+                    <div style="border: 1px solid #fca5a5; background-color: #fef2f2; padding: 15px; border-radius: 8px; color: #991b1b;">
+                        ⚠️ <strong>Estudiante no encontrado:</strong> No existe ninguna cuenta de estudiante registrada con el nombre 
+                        "<strong>${nombreBuscado}</strong>" en el curso <strong>${cursoBuscado}</strong>.
+                    </div>
+                `;
+                return;
+            }
+
+            // 4. Si existe, consultar las tareas de su curso y sus entregas efectivas
+            tituloReporte.innerText = `📊 Estado de Actividades para ${estudianteEncontrado.nombre} (${estudianteEncontrado.curso})`;
+
+            const tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            const entregas = JSON.parse(localStorage.getItem('entregasAgenda')) || [];
+            const tareasDelCurso = tareas.filter(t => t.curso === cursoBuscado);
+
+            if (tareasDelCurso.length === 0) {
+                contenedor.innerHTML = `<p style="color: #666;">El estudiante existe en el sistema, pero no hay tareas registradas actualmente para el curso <strong>${cursoBuscado}</strong>.</p>`;
+                return;
+            }
+
+            let tablaHTML = `
+                <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">
+                            <th style="padding: 10px;">Materia</th>
+                            <th style="padding: 10px;">Actividad</th>
+                            <th style="padding: 10px;">Fecha Límite</th>
+                            <th style="padding: 10px;">Estado de Entrega</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            tareasDelCurso.forEach(t => {
+                const entrego = entregas.some(e => e.idTarea === t.id && e.estudiante.toLowerCase() === estudianteEncontrado.nombre.toLowerCase());
+                
+                tablaHTML += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 10px;">${t.materia}</td>
+                        <td style="padding: 10px;">${t.titulo}</td>
+                        <td style="padding: 10px;">${t.fecha}</td>
+                        <td style="padding: 10px;">
+                            ${entrego 
+                                ? '<span style="color: #16a34a; font-weight: bold; background: #dcfce7; padding: 4px 8px; border-radius: 4px;">Entregado</span>' 
+                                : '<span style="color: #dc2626; font-weight: bold; background: #fee2e2; padding: 4px 8px; border-radius: 4px;">Sin Entregar</span>'
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tablaHTML += `</tbody></table>`;
+            contenedor.innerHTML = tablaHTML;
+        }
+    </script>
+
+</body>
+</html>

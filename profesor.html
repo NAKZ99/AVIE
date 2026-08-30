@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Profesor - Agenda Virtual</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <header class="topbar">
+            <div>
+                <h2>Panel del Profesor 👨‍🏫</h2>
+                <p style="color: #666; font-size: 14px;">Gestión de actividades y mensajes</p>
+            </div>
+            <div>
+                <button onclick="location.href='perfil.html'" class="btn-role" style="width: auto; padding: 8px 12px; font-size: 14px; margin-right: 5px; cursor: pointer;">Mi Perfil ⚙️</button>
+                <button onclick="location.href='index.html'" class="btn-logout">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <!-- Asignar Tarea con Archivo -->
+        <section class="card-section" style="margin-bottom: 25px;">
+            <h3>➕ Asignar Nueva Actividad</h3>
+            <form id="form-profesor" onsubmit="publicarTarea(event)">
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px;">Curso</label>
+                        <select id="curso-tarea" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                            <option value="">Seleccionar...</option>
+                            <option value="11° A">11° A</option>
+                            <option value="11° B">11° B</option>
+                            <option value="10° A">10° A</option>
+                            <option value="10° B">10° B</option>
+                        </select>
+                    </div>
+                    <div style="flex: 2;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px;">Materia</label>
+                        <input type="text" id="materia-tarea" placeholder="Ej: Informática" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Título de la Tarea</label>
+                    <input type="text" id="titulo-tarea" placeholder="Ej: Guía de Ejercicios" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Fecha Límite</label>
+                    <input type="date" id="fecha-tarea" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Indicaciones</label>
+                    <textarea id="indicaciones-tarea" rows="2" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;"></textarea>
+                </div>
+
+                <!-- Adjuntar Archivo del Profesor -->
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Adjuntar Archivo de Guía (Opcional):</label>
+                    <input type="file" id="archivo-profesor" style="font-size: 14px;">
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Publicar Tarea</button>
+            </form>
+        </section>
+
+        <!-- Lista de tareas publicadas (Aplazar y Borrar) -->
+        <section class="card-section" style="margin-bottom: 25px;">
+            <h3>📌 Tareas Publicadas</h3>
+            <div id="lista-tareas-publicadas"></div>
+        </section>
+
+        <!-- Bandeja de Mensajes / Dudas de Estudiantes -->
+        <section class="card-section">
+            <h3>💬 Mensajes y Dudas de Estudiantes</h3>
+            <div id="contenedor-mensajes-profesor">
+                <p style="color: #666;">No hay mensajes pendientes.</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function publicarTarea(e) {
+            e.preventDefault();
+            const curso = document.getElementById('curso-tarea').value;
+            const titulo = document.getElementById('titulo-tarea').value;
+            const materia = document.getElementById('materia-tarea').value;
+            const fecha = document.getElementById('fecha-tarea').value;
+            const indicaciones = document.getElementById('indicaciones-tarea').value;
+            const inputArchivo = document.getElementById('archivo-profesor');
+            
+            let nombreArchivo = inputArchivo.files.length > 0 ? inputArchivo.files[0].name : null;
+
+            const nuevaTarea = { id: Date.now(), curso, titulo, materia, fecha, indicaciones, archivo: nombreArchivo };
+
+            let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            tareas.push(nuevaTarea);
+            localStorage.setItem('tareasAgenda', JSON.stringify(tareas));
+
+            alert('¡Tarea publicada exitosamente!');
+            document.getElementById('form-profesor').reset();
+            cargarTareas();
+        }
+
+        function borrarTarea(id) {
+            if (confirm("¿Seguro que deseas eliminar esta tarea?")) {
+                let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+                tareas = tareas.filter(t => t.id !== id);
+                localStorage.setItem('tareasAgenda', JSON.stringify(tareas));
+                cargarTareas();
+            }
+        }
+
+        function aplazarTarea(id) {
+            const nuevaFecha = prompt("Ingresa la nueva fecha límite (AAAA-MM-DD):");
+            if (nuevaFecha) {
+                let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+                const tarea = tareas.find(t => t.id === id);
+                if (tarea) {
+                    tarea.fecha = nuevaFecha;
+                    localStorage.setItem('tareasAgenda', JSON.stringify(tareas));
+                    alert("Fecha aplazada con éxito.");
+                    cargarTareas();
+                }
+            }
+        }
+
+        function descargarArchivo(nombreArchivo) {
+            alert(`Descargando archivo: ${nombreArchivo}`);
+        }
+
+        function responderMensaje(idMensaje) {
+            const respuesta = prompt("Escribe tu respuesta para el estudiante:");
+            if (respuesta) {
+                let mensajes = JSON.parse(localStorage.getItem('mensajesAgenda')) || [];
+                const msg = mensajes.find(m => m.id === idMensaje);
+                if (msg) {
+                    msg.respuesta = respuesta;
+                    localStorage.setItem('mensajesAgenda', JSON.stringify(mensajes));
+                    alert("Respuesta enviada.");
+                    cargarMensajes();
+                }
+            }
+        }
+
+        function cargarTareas() {
+            const tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            const entregas = JSON.parse(localStorage.getItem('entregasAgenda')) || [];
+            const contenedor = document.getElementById('lista-tareas-publicadas');
+            contenedor.innerHTML = '';
+
+            if (tareas.length === 0) {
+                contenedor.innerHTML = '<p style="color: #666;">No hay tareas publicadas.</p>';
+                return;
+            }
+
+            tareas.forEach(t => {
+                const entregasTarea = entregas.filter(e => e.idTarea === t.id);
+                let entregasHTML = '';
+                
+                if (entregasTarea.length > 0) {
+                    entregasHTML = '<div style="margin-top: 10px; padding: 8px; background: #e2e8f0; border-radius: 6px;"><strong>Entregas de alumnos:</strong><ul style="margin: 5px 0 0 15px; padding: 0;">';
+                    entregasTarea.forEach(ent => {
+                        entregasHTML += `<li>${ent.estudiante} - Archivo: ${ent.archivo ? `<a href="#" onclick="descargarArchivo('${ent.archivo}')">${ent.archivo} 📥</a>` : 'Sin archivo'}</li>`;
+                    });
+                    entregasHTML += '</ul></div>';
+                }
+
+                contenedor.innerHTML += `
+                    <div style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong>[${t.curso}] ${t.materia} - ${t.titulo}</strong>
+                            <span style="color: #dc2626; font-weight: bold;">Límite: ${t.fecha}</span>
+                        </div>
+                        <p style="margin: 8px 0; font-size: 14px;">${t.indicaciones || 'Sin indicaciones'}</p>
+                        ${t.archivo ? `<p style="font-size: 13px;">📎 Archivo adjunto: <a href="#" onclick="descargarArchivo('${t.archivo}')">${t.archivo} 📥</a></p>` : ''}
+                        ${entregasHTML}
+                        <div style="margin-top: 10px; display: flex; gap: 8px;">
+                            <button onclick="aplazarTarea(${t.id})" style="background-color: #d97706; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">📅 Aplazar</button>
+                            <button onclick="borrarTarea(${t.id})" style="background-color: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function cargarMensajes() {
+            const mensajes = JSON.parse(localStorage.getItem('mensajesAgenda')) || [];
+            const contenedor = document.getElementById('contenedor-mensajes-profesor');
+            contenedor.innerHTML = '';
+
+            if (mensajes.length === 0) {
+                contenedor.innerHTML = '<p style="color: #666;">No hay mensajes recibidos.</p>';
+                return;
+            }
+
+            mensajes.forEach(m => {
+                contenedor.innerHTML += `
+                    <div style="border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; margin-bottom: 10px; background: #ffffff;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">De: <strong>${m.estudiante}</strong> (${m.curso})</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>Duda:</strong> ${m.mensaje}</p>
+                        ${m.respuesta 
+                            ? `<p style="margin: 5px 0 0 0; font-size: 13px; color: #16a34a;"><strong>Tu Respuesta:</strong> ${m.respuesta}</p>`
+                            : `<button onclick="responderMensaje(${m.id})" style="background-color: #2563eb; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; margin-top: 5px;">Responder</button>`
+                        }
+                    </div>
+                `;
+            });
+        }
+
+        cargarTareas();
+        cargarMensajes();
+    </script>
+</body>
+</html>

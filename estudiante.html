@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Estudiante - Agenda Virtual</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <header class="topbar">
+            <div>
+                <h2>Panel del Estudiante 🎓</h2>
+                <p id="saludo-estudiante" style="color: #666; font-size: 14px;">Bienvenido</p>
+            </div>
+            <div>
+                <button onclick="location.href='perfil.html'" class="btn-role" style="width: auto; padding: 8px 12px; font-size: 14px; margin-right: 5px; cursor: pointer;">Mi Perfil ⚙️</button>
+                <button onclick="location.href='index.html'" class="btn-logout">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <section class="card-section" style="margin-bottom: 20px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 8px;">Curso Actual:</label>
+            <select id="select-curso-estudiante" onchange="cargarTareasEstudiante()" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                <option value="">-- Seleccionar Curso --</option>
+                <option value="11° A">11° A</option>
+                <option value="11° B">11° B</option>
+                <option value="10° A">10° A</option>
+                <option value="10° B">10° B</option>
+            </select>
+        </section>
+
+        <!-- Tareas -->
+        <section class="card-section" style="margin-bottom: 25px;">
+            <h3>📖 Actividades de mi Curso</h3>
+            <div id="contenedor-tareas-estudiante"></div>
+        </section>
+
+        <!-- Enviar Mensaje / Duda -->
+        <section class="card-section">
+            <h3>💬 Enviar Mensaje / Duda al Profesor</h3>
+            <form onsubmit="enviarMensajeProfesor(event)">
+                <textarea id="texto-mensaje" rows="3" placeholder="Escribe tu duda o consulta aquí..." required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;"></textarea>
+                <button type="submit" class="btn-primary" style="width: 100%;">Enviar Mensaje</button>
+            </form>
+
+            <h4 style="margin-top: 20px;">Respuestas Recibidas:</h4>
+            <div id="contenedor-respuestas-estudiante"></div>
+        </section>
+    </div>
+
+    <script>
+        const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
+
+        if (usuarioActual && usuarioActual.nombre) {
+            document.getElementById('saludo-estudiante').innerText = `Estudiante: ${usuarioActual.nombre}`;
+            if (usuarioActual.curso) {
+                document.getElementById('select-curso-estudiante').value = usuarioActual.curso;
+            }
+        }
+
+        function descargarArchivo(nombreArchivo) {
+            alert(`Descargando recurso del profesor: ${nombreArchivo}`);
+        }
+
+        function entregarTarea(idTarea) {
+            const fileInput = document.getElementById(`file-${idTarea}`);
+            const nombreArchivo = fileInput.files.length > 0 ? fileInput.files[0].name : 'Archivo_Tarea.pdf';
+
+            let entregas = JSON.parse(localStorage.getItem('entregasAgenda')) || [];
+            const nombreEstudiante = usuarioActual ? usuarioActual.nombre : 'Estudiante';
+
+            entregas.push({
+                idTarea: idTarea,
+                estudiante: nombreEstudiante,
+                archivo: nombreArchivo,
+                fechaEntrega: new Date().toLocaleDateString()
+            });
+
+            localStorage.setItem('entregasAgenda', JSON.stringify(entregas));
+            alert('¡Tarea entregada con éxito junto con tu archivo!');
+            cargarTareasEstudiante();
+        }
+
+        function enviarMensajeProfesor(e) {
+            e.preventDefault();
+            const mensaje = document.getElementById('texto-mensaje').value;
+            const curso = document.getElementById('select-curso-estudiante').value;
+
+            if (!curso) {
+                alert("Por favor selecciona tu curso arriba primero.");
+                return;
+            }
+
+            let mensajes = JSON.parse(localStorage.getItem('mensajesAgenda')) || [];
+            mensajes.push({
+                id: Date.now(),
+                estudiante: usuarioActual ? usuarioActual.nombre : 'Estudiante',
+                curso: curso,
+                mensaje: mensaje,
+                respuesta: null
+            });
+
+            localStorage.setItem('mensajesAgenda', JSON.stringify(mensajes));
+            alert('¡Mensaje enviado al profesor!');
+            document.getElementById('texto-mensaje').value = '';
+            cargarMensajesEstudiante();
+        }
+
+        function cargarTareasEstudiante() {
+            const cursoSeleccionado = document.getElementById('select-curso-estudiante').value;
+            const contenedor = document.getElementById('contenedor-tareas-estudiante');
+            const tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            const entregas = JSON.parse(localStorage.getItem('entregasAgenda')) || [];
+            const nombreEstudiante = usuarioActual ? usuarioActual.nombre : '';
+
+            if (!cursoSeleccionado) {
+                contenedor.innerHTML = '<p style="color: #666;">Selecciona un curso arriba para ver tareas.</p>';
+                return;
+            }
+
+            const tareasFiltradas = tareas.filter(t => t.curso === cursoSeleccionado);
+            if (tareasFiltradas.length === 0) {
+                contenedor.innerHTML = `<p style="color: #666;">No hay tareas para el curso ${cursoSeleccionado}.</p>`;
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            tareasFiltradas.forEach(t => {
+                const entregaRealizada = entregas.find(e => e.idTarea === t.id && e.estudiante === nombreEstudiante);
+
+                contenedor.innerHTML += `
+                    <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-top: 15px; background-color: #f8fafc;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <h4 style="margin: 0; color: #2563eb;">${t.materia}: ${t.titulo}</h4>
+                            <span style="font-weight: bold; color: ${entregaRealizada ? '#16a34a' : '#d97706'};">
+                                ${entregaRealizada ? '✔️ Entregado' : 'Fecha límite: ' + t.fecha}
+                            </span>
+                        </div>
+                        <p style="font-size: 14px; margin: 8px 0;">${t.indicaciones}</p>
+                        ${t.archivo ? `<p style="font-size: 13px;">📎 Material del profesor: <a href="#" onclick="descargarArchivo('${t.archivo}')">${t.archivo} 📥</a></p>` : ''}
+                        
+                        <div style="margin-top: 12px;">
+                            ${entregaRealizada 
+                                ? `<p style="color: #16a34a; font-size: 13px;">✅ Entregaste el archivo: <strong>${entregaRealizada.archivo}</strong></p>`
+                                : `
+                                    <input type="file" id="file-${t.id}" style="font-size: 13px; margin-bottom: 8px;">
+                                    <button onclick="entregarTarea(${t.id})" class="btn-primary" style="width: auto; padding: 6px 12px;">Subir y Entregar Tarea</button>
+                                `
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+
+            cargarMensajesEstudiante();
+        }
+
+        function cargarMensajesEstudiante() {
+            const mensajes = JSON.parse(localStorage.getItem('mensajesAgenda')) || [];
+            const contenedor = document.getElementById('contenedor-respuestas-estudiante');
+            const nombreEstudiante = usuarioActual ? usuarioActual.nombre : '';
+            
+            const misMensajes = mensajes.filter(m => m.estudiante === nombreEstudiante);
+            contenedor.innerHTML = '';
+
+            if (misMensajes.length === 0) {
+                contenedor.innerHTML = '<p style="color: #666; font-size: 13px;">No has enviado mensajes aún.</p>';
+                return;
+            }
+
+            misMensajes.forEach(m => {
+                contenedor.innerHTML += `
+                    <div style="border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-top: 8px; background: #ffffff;">
+                        <p style="margin: 0; font-size: 13px;"><strong>Tu consulta:</strong> ${m.mensaje}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 13px; color: ${m.respuesta ? '#16a34a' : '#d97706'};">
+                            <strong>Respuesta del profesor:</strong> ${m.respuesta ? m.respuesta : 'Esperando respuesta...'}
+                        </p>
+                    </div>
+                `;
+            });
+        }
+
+        cargarTareasEstudiante();
+    </script>
+</body>
+</html>

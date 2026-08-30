@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - AVIE</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <div class="login-container">
+        <h1 style="color: #2563eb; margin-bottom: 2px;">AVIE</h1>
+        <p style="font-size: 13px; color: #64748b; font-weight: bold; margin-bottom: 20px;">
+            Agenda Virtual Institucional Estudiantil
+        </p>
+        
+        <h2>Iniciar Sesión</h2>
+
+        <form id="loginForm" onsubmit="return validarLogin(event)">
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label for="correo" style="display: block; margin-bottom: 5px; font-weight: bold;">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="ejemplo@correo.com" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+            </div>
+
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label for="contrasena" style="display: block; margin-bottom: 5px; font-weight: bold;">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Tu contraseña" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">Ingresar a AVIE</button>
+        </form>
+
+        <p style="margin-top: 15px; font-size: 14px;">
+            ¿No tienes cuenta? <a href="registro.html" style="color: #2563eb; text-decoration: none; font-weight: bold;">Regístrate aquí</a>
+        </p>
+    </div>
+
+    <script>
+        function validarLogin(e) {
+            e.preventDefault();
+            const correoInput = document.getElementById('correo').value.trim().toLowerCase();
+            const contrasenaInput = document.getElementById('contrasena').value;
+
+            const usuariosGuardados = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+
+            const usuarioEncontrado = usuariosGuardados.find(u => u.correo === correoInput && u.contrasena === contrasenaInput);
+
+            if (usuarioEncontrado) {
+                localStorage.setItem('usuarioActual', JSON.stringify(usuarioEncontrado));
+                
+                if (usuarioEncontrado.rol === 'profesor') {
+                    window.location.href = 'profesor.html';
+                } else if (usuarioEncontrado.rol === 'estudiante') {
+                    window.location.href = 'estudiante.html';
+                } else if (usuarioEncontrado.rol === 'padre') {
+                    window.location.href = 'padre.html';
+                }
+            } else {
+                alert('⚠️ Correo o contraseña incorrectos. Por favor verifica tus datos o regístrate.');
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Cuenta - Agenda Virtual</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <div class="dashboard-container" style="max-width: 600px; margin: 40px auto; padding: 20px;">
+        <header class="topbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h2>Configuración de Perfil ⚙️</h2>
+                <p style="color: #666; font-size: 14px;">Administra tu información personal</p>
+            </div>
+            <button onclick="window.history.back()" class="btn-logout" style="background-color: #4b5563;">Volver</button>
+        </header>
+
+        <!-- Cambiar Contraseña -->
+        <section class="card-section" style="margin-bottom: 25px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
+            <h3 style="margin-bottom: 15px;">Cambiar Contraseña</h3>
+            <form id="form-cambiar-clave" onsubmit="actualizarClave(event)">
+                <div style="margin-bottom: 12px; text-align: left;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Contraseña Actual</label>
+                    <input type="password" id="clave-actual" required placeholder="Ingresa tu contraseña actual" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                </div>
+
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Nueva Contraseña</label>
+                    <input type="password" id="nueva-clave" required placeholder="Ingresa la nueva contraseña" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Actualizar Contraseña</button>
+            </form>
+        </section>
+
+        <!-- Eliminar Cuenta -->
+        <section class="card-section" style="border: 1px solid #fca5a5; background-color: #fff5f5; padding: 20px; border-radius: 8px;">
+            <h3 style="color: #991b1b; margin-bottom: 10px;">Zona de Peligro</h3>
+            <p style="font-size: 14px; color: #7f1d1d; margin-bottom: 15px;">
+                Al eliminar tu cuenta se borrarán permanentemente tus datos de este dispositivo.
+            </p>
+            <button onclick="eliminarCuenta()" style="background-color: #dc2626; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">
+                Eliminar mi cuenta definitivamente
+            </button>
+        </section>
+    </div>
+
+    <script>
+        function actualizarClave(e) {
+            e.preventDefault();
+            alert('¡Contraseña actualizada con éxito!');
+            window.history.back();
+        }
+
+        function eliminarCuenta() {
+            const confirmacion = confirm("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.");
+            if (confirmacion) {
+                localStorage.clear();
+                alert("Tu cuenta ha sido eliminada.");
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+
+</body>
+</html>
