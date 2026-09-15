@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Profesor - AVIE</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; color: #334155; padding: 20px; }
+        
+        .header-container { display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); margin-bottom: 20px; }
+        .header-container h1 { color: #1e3a8a; font-size: 24px; }
+        .user-info { font-size: 14px; color: #64748b; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        
+        .btn-profile { background-color: #2563eb; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; transition: background-color 0.2s; }
+        .btn-profile:hover { background-color: #1d4ed8; }
+        
+        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
+        .btn-danger:hover { background-color: #dc2626; }
+        
+        .main-card { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); margin-bottom: 20px; }
+        .main-card h2 { color: #1e3a8a; font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #475569; font-size: 14px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+        .form-group textarea { resize: vertical; height: 90px; }
+        
+        .btn-primary { background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        
+        .task-item, .msg-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div>
+            <h1>Panel de Profesor</h1>
+            <p class="user-info" id="nombreProfesor">Bienvenido, Docente</p>
+        </div>
+        <div class="header-actions">
+            <a href="perfil.html" class="btn-profile">Mi Perfil</a>
+            <button class="btn-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <!-- ASIGNAR TAREA -->
+    <div class="main-card">
+        <h2>Asignar Nueva Actividad</h2>
+        <form id="formActividad" onsubmit="publicarActividad(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="cursoAsignar">Curso / Grado</label>
+                    <select id="cursoAsignar" required>
+                        <option value="">Selecciona curso...</option>
+                        <option value="11° A">11° A</option>
+                        <option value="11° B">11° B</option>
+                        <option value="10° A">10° A</option>
+                        <option value="10° B">10° B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="materiaAsignar">Materia</label>
+                    <input type="text" id="materiaAsignar" placeholder="Ej. Informática" required>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="tituloAsignar">Título de la Tarea</label>
+                <input type="text" id="tituloAsignar" placeholder="Ej. Guía de Ejercicios" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fechaAsignar">Fecha Límite</label>
+                    <input type="date" id="fechaAsignar" required>
+                </div>
+                <div class="form-group">
+                    <label for="archivoAsignar">Adjuntar Archivo de Guía (Opcional)</label>
+                    <input type="file" id="archivoAsignar">
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="indicacionesAsignar">Indicaciones</label>
+                <textarea id="indicacionesAsignar" placeholder="Escribe las instrucciones..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary">Publicar Tarea</button>
+        </form>
+    </div>
+
+    <!-- TAREAS PUBLICADAS Y ENTREGAS -->
+    <div class="main-card">
+        <h2>Tareas Publicadas y Trabajos Entregados por Estudiantes</h2>
+        <div id="listaTareasProfesor">
+            <p style="color: #64748b; font-size: 14px;">No hay tareas publicadas todavía.</p>
+        </div>
+    </div>
+
+    <!-- BUZÓN DE MENSAJES -->
+    <div class="main-card">
+        <h2>Enviar Mensaje Nuevo a Padre o Estudiante</h2>
+        <form onsubmit="enviarMensajeProfesor(event)">
+            <div class="form-group">
+                <label for="selectDestinatarioProfesor">Destinatario (Padre o Estudiante Registrado)</label>
+                <select id="selectDestinatarioProfesor" required>
+                    <option value="">Cargando usuarios registrados...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="materiaMensajeProfesor">Materia / Asunto</label>
+                <input type="text" id="materiaMensajeProfesor" placeholder="Ej. Comportamiento o Tarea" required>
+            </div>
+            <div class="form-group">
+                <label for="textoMensajeProfesor">Mensaje</label>
+                <textarea id="textoMensajeProfesor" placeholder="Escribe el mensaje..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Enviar Mensaje</button>
+        </form>
+
+        <h3 style="margin-top: 25px; font-size: 16px; color: #1e3a8a; margin-bottom: 10px;">Bandeja de Entrada y Salida (Mensajes de Estudiantes y Padres):</h3>
+        <div id="buzonDudasProfesor">
+            <p style="color: #64748b; font-size: 13px;">No hay mensajes recibidos.</p>
+        </div>
+    </div>
+
+    <script>
+        const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
+        if (!usuarioActual || usuarioActual.rol !== 'profesor') {
+            alert('⚠️ Acceso no autorizado.');
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('nombreProfesor').textContent = `Bienvenido, ${usuarioActual.nombre}`;
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioActual');
+            window.location.href = 'login.html';
+        }
+
+        function cargarDestinatariosRegistrados() {
+            let usuarios = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+            let destinatarios = usuarios.filter(u => u.rol === 'padre' || u.rol === 'estudiante');
+            const select = document.getElementById('selectDestinatarioProfesor');
+
+            if (destinatarios.length === 0) {
+                select.innerHTML = '<option value="">No hay padres o estudiantes registrados</option>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">Selecciona un destinatario...</option>' + 
+                destinatarios.map(u => `<option value="${u.nombre}">${u.nombre} (${u.rol.toUpperCase()} - ${u.correo})</option>`).join('');
+        }
+
+        function publicarActividad(e) {
+            e.preventDefault();
+            const curso = document.getElementById('cursoAsignar').value;
+            const materia = document.getElementById('materiaAsignar').value;
+            const titulo = document.getElementById('tituloAsignar').value;
+            const fecha = document.getElementById('fechaAsignar').value;
+            const indicaciones = document.getElementById('indicacionesAsignar').value;
+            const archivoInput = document.getElementById('archivoAsignar');
+            const nombreArchivo = archivoInput.files.length > 0 ? archivoInput.files[0].name : null;
+
+            const nuevaTarea = {
+                id: Date.now(),
+                curso,
+                materia,
+                titulo,
+                fecha,
+                indicaciones,
+                archivo: nombreArchivo,
+                profesor: usuarioActual.nombre
+            };
+
+            let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            tareas.push(nuevaTarea);
+            localStorage.setItem('tareasAgenda', JSON.stringify(tareas));
+            alert('¡Tarea publicada con éxito!');
+            document.getElementById('formActividad').reset();
+            cargarTareasProfesor();
+        }
+
+        function cargarTareasProfesor() {
+            const contenedor = document.getElementById('listaTareasProfesor');
+            let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            let entregas = JSON.parse(localStorage.getItem('entregasTareas')) || [];
+
+            if (tareas.length === 0) {
+                contenedor.innerHTML = '<p style="color: #64748b; font-size: 14px;">No hay tareas publicadas todavía.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            tareas.forEach((t, index) => {
+                const entregasDeEstaTarea = entregas.filter(e => e.idTarea === t.id);
+                let htmlEntregas = entregasDeEstaTarea.length > 0 ? 
+                    entregasDeEstaTarea.map(en => `<p style="font-size:12px; color:#16a34a; margin-left:15px;">- <strong>${en.estudiante}:</strong> ${en.archivo} (${en.fechaEntrega})</p>`).join('') :
+                    `<p style="font-size:12px; color:#64748b; margin-left:15px;">- Sin entregas aún.</p>`;
+
+                contenedor.innerHTML += `
+                    <div class="task-item">
+                        <h4>${t.titulo} (${t.materia}) - <span style="color:#2563eb;">${t.curso}</span></h4>
+                        <p style="font-size:13px; color:#64748b;"><strong>Fecha límite:</strong> ${t.fecha} | <strong>Indicaciones:</strong> ${t.indicaciones}</p>
+                        ${t.archivo ? `<p style="font-size:13px;">📎 <strong>Guía adjunta:</strong> ${t.archivo}</p>` : ''}
+                        <div style="margin-top: 10px; background: #ffffff; padding: 8px; border-radius: 6px; border: 1px dashed #cbd5e1;">
+                            <p style="font-size:13px; font-weight:bold; color:#1e3a8a; margin-bottom:4px;">Entregas de Estudiantes:</p>
+                            ${htmlEntregas}
+                        </div>
+                        <button onclick="eliminarTarea(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-top:10px;">Eliminar Tarea</button>
+                    </div>
+                `;
+            });
+        }
+
+        function eliminarTarea(index) {
+            let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            tareas.splice(index, 1);
+            localStorage.setItem('tareasAgenda', JSON.stringify(tareas));
+            cargarTareasProfesor();
+        }
+
+        function enviarMensajeProfesor(e) {
+            e.preventDefault();
+            const destinatario = document.getElementById('selectDestinatarioProfesor').value;
+            if (!destinatario) {
+                alert('⚠️ Debe seleccionar un destinatario registrado.');
+                return;
+            }
+
+            const nuevoMensaje = {
+                id: Date.now(),
+                curso: 'Comunicación Directa',
+                autor: usuarioActual.nombre,
+                rol: 'Profesor',
+                destinatario: destinatario,
+                materia: document.getElementById('materiaMensajeProfesor').value,
+                mensaje: document.getElementById('textoMensajeProfesor').value,
+                respuesta: ''
+            };
+
+            let dudas = JSON.parse(localStorage.getItem('dudasAgenda')) || [];
+            dudas.push(nuevoMensaje);
+            localStorage.setItem('dudasAgenda', JSON.stringify(dudas));
+            alert('¡Mensaje enviado con éxito!');
+            e.target.reset();
+            cargarBuzonProfesor();
+        }
+
+        function enviarRespuestaDirecta(id) {
+            const textoResp = document.getElementById(`respInput_${id}`).value;
+            if(!textoResp.trim()) return alert('Escribe una respuesta');
+
+            let dudas = JSON.parse(localStorage.getItem('dudasAgenda')) || [];
+            let index = dudas.findIndex(d => d.id === id);
+            if(index !== -1) {
+                dudas[index].respuesta = (dudas[index].respuesta ? dudas[index].respuesta + '<br>' : '') + `<strong>${usuarioActual.nombre}:</strong> ${textoResp}`;
+                localStorage.setItem('dudasAgenda', JSON.stringify(dudas));
+                cargarBuzonProfesor();
+            }
+        }
+
+        function cargarBuzonProfesor() {
+            let dudas = JSON.parse(localStorage.getItem('dudasAgenda')) || [];
+            let misMensajes = dudas.filter(d => d.destinatario === usuarioActual.nombre || d.autor === usuarioActual.nombre);
+            const contenedor = document.getElementById('buzonDudasProfesor');
+
+            if (misMensajes.length === 0) {
+                contenedor.innerHTML = '<p style="color: #64748b; font-size: 13px;">No hay mensajes en el buzón.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = misMensajes.map(d => `
+                <div class="msg-item">
+                    <p style="font-size:13px; color:#1e3a8a;"><strong>De:</strong> ${d.autor} (${d.rol}) ➡️ <strong>Para:</strong> ${d.destinatario} | <strong>Materia:</strong> ${d.materia}</p>
+                    <p style="font-size:14px; margin: 6px 0;">${d.mensaje}</p>
+                    <div style="background: #ffffff; padding: 8px; border-radius: 6px; margin-top: 6px; border: 1px dashed #cbd5e1;">
+                        <p style="font-size:13px; color: #16a34a;"><strong>Historial de Respuestas:</strong><br>${d.respuesta || 'Sin respuestas aún.'}</p>
+                        <div style="display: flex; gap: 5px; margin-top: 8px;">
+                            <input type="text" id="respInput_${d.id}" placeholder="Escribe una respuesta..." style="flex:1; padding: 6px; font-size:12px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            <button onclick="enviarRespuestaDirecta(${d.id})" class="btn-primary" style="padding: 6px 12px; font-size:12px;">Responder</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.onload = function() {
+            cargarDestinatariosRegistrados();
+            cargarTareasProfesor();
+            cargarBuzonProfesor();
+        };
+    </script>
+</body>
+</html>

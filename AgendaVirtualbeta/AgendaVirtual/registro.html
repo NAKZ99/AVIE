@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - AVIE</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .login-container { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); width: 100%; max-width: 450px; text-align: center; }
+        .login-container h1 { color: #1e3a8a; font-size: 26px; margin-bottom: 5px; }
+        .subtitle { color: #64748b; font-size: 13px; margin-bottom: 20px; }
+        .login-container h2 { font-size: 20px; color: #334155; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #475569; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+        .form-group input:focus, .form-group select:focus { border-color: #2563eb; }
+        .btn { width: 100%; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn:hover { background-color: #1d4ed8; }
+        .footer-text { margin-top: 20px; font-size: 14px; color: #64748b; }
+        .footer-text a { color: #2563eb; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>AVIE</h1>
+        <p class="subtitle">Agenda Virtual Institucional Estudiantil</p>
+        <h2>Crear nueva cuenta</h2>
+        <form id="registroForm" onsubmit="return procesarRegistro(event)">
+            <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" placeholder="Tu nombre y apellido" required>
+            </div>
+            <div class="form-group">
+                <label for="correo">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="ejemplo@correo.com" required>
+                <span id="mensajeError" style="color: #e74c3c; font-size: 13px; display: none; margin-top: 5px;">Correo no válido.</span>
+            </div>
+            <div class="form-group">
+                <label for="rol">Tipo de Cuenta</label>
+                <select id="rol" onchange="mostrarOpcionCurso()" required>
+                    <option value="">Selecciona tu rol...</option>
+                    <option value="profesor">👨‍🏫 Profesor</option>
+                    <option value="estudiante">👨‍🎓 Estudiante</option>
+                    <option value="padre">👨‍👩‍👦 Padre / Acudiente</option>
+                </select>
+            </div>
+            <!-- Campo de curso para Estudiantes y Padres -->
+            <div id="campo-curso" class="form-group" style="display: none;">
+                <label for="curso" id="labelCurso">Curso / Grado del Estudiante</label>
+                <select id="curso">
+                    <option value="">Selecciona curso...</option>
+                    <option value="11° A">11° A</option>
+                    <option value="11° B">11° B</option>
+                    <option value="10° A">10° A</option>
+                    <option value="10° B">10° B</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Crea tu contraseña" required>
+            </div>
+            <button type="submit" class="btn">Registrarme e Ingresar</button>
+        </form>
+        <p class="footer-text">¿Ya tienes una cuenta? <a href="login.html">Inicia sesión aquí</a></p>
+    </div>
+
+    <script>
+        function mostrarOpcionCurso() {
+            const rol = document.getElementById('rol').value;
+            const campoCurso = document.getElementById('campo-curso');
+            const selectCurso = document.getElementById('curso');
+            const labelCurso = document.getElementById('labelCurso');
+
+            if (rol === 'estudiante') {
+                campoCurso.style.display = 'block';
+                labelCurso.textContent = "Curso / Grado";
+                selectCurso.required = true;
+            } else if (rol === 'padre') {
+                campoCurso.style.display = 'block';
+                labelCurso.textContent = "Curso del Hijo / Estudiante a cargo";
+                selectCurso.required = true;
+            } else {
+                campoCurso.style.display = 'none';
+                selectCurso.required = false;
+                selectCurso.value = '';
+            }
+        }
+
+        function procesarRegistro(e) {
+            e.preventDefault();
+            const nombreInput = document.getElementById('nombre').value.trim();
+            const correoInput = document.getElementById('correo').value.trim().toLowerCase();
+            const rolSeleccionado = document.getElementById('rol').value;
+            const cursoSeleccionado = document.getElementById('curso').value;
+            const contrasenaInput = document.getElementById('contrasena').value;
+
+            let usuariosGuardados = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+            if (usuariosGuardados.some(u => u.correo === correoInput)) {
+                alert('⚠️ Este correo ya está registrado.');
+                return false;
+            }
+
+            const nuevoUsuario = {
+                nombre: nombreInput,
+                correo: correoInput,
+                rol: rolSeleccionado,
+                curso: (rolSeleccionado === 'estudiante' || rolSeleccionado === 'padre') ? cursoSeleccionado : '',
+                contrasena: contrasenaInput
+            };
+
+            usuariosGuardados.push(nuevoUsuario);
+            localStorage.setItem('usuariosAgenda', JSON.stringify(usuariosGuardados));
+            localStorage.setItem('usuarioActual', JSON.stringify(nuevoUsuario));
+
+            alert('¡Registro exitoso!');
+            window.location.href = rolSeleccionado + '.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Padre - AVIE</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; color: #334155; padding: 20px; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .header-container h1 { color: #1e3a8a; font-size: 24px; }
+        .user-info { font-size: 14px; color: #64748b; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-profile { background-color: #2563eb; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; transition: background-color 0.2s; }
+        .btn-profile:hover { background-color: #1d4ed8; }
+        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
+        .btn-danger:hover { background-color: #dc2626; }
+        
+        .main-card { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .main-card h2 { color: #1e3a8a; font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #475569; font-size: 14px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+        .form-group textarea { resize: vertical; height: 90px; }
+        .btn-primary { background-color: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        
+        .msg-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div>
+            <h1>Panel de Padre / Acudiente</h1>
+            <p class="user-info" id="nombrePadre">Cargando datos...</p>
+        </div>
+        <div class="header-actions">
+            <a href="perfil.html" class="btn-profile">Mi Perfil</a>
+            <button class="btn-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <!-- BUZÓN DE MENSAJES CON PROFESORES -->
+    <div class="main-card">
+        <h2>Buzón de Mensajes y Reportes Docentes</h2>
+        <form onsubmit="enviarMensajePadre(event)">
+            <div class="form-group">
+                <label for="selectProfesorPadre">Seleccionar Profesor Registrado</label>
+                <select id="selectProfesorPadre" required>
+                    <option value="">Cargando profesores...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="materiaMensajePadre">Materia / Asunto</label>
+                <input type="text" id="materiaMensajePadre" placeholder="Ej. Rendimiento Académico" required>
+            </div>
+            <div class="form-group">
+                <label for="textoMensajePadre">Mensaje</label>
+                <textarea id="textoMensajePadre" placeholder="Escribe tu mensaje para el profesor..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Enviar Mensaje</button>
+        </form>
+
+        <h3 style="margin-top: 25px; font-size: 16px; color: #1e3a8a; margin-bottom: 10px;">Bandeja de Entrada y Salida:</h3>
+        <div id="historialMensajesPadre">
+            <p style="color: #64748b; font-size: 13px;">No hay mensajes registrados.</p>
+        </div>
+    </div>
+
+    <script>
+        const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
+        if (!usuarioActual || usuarioActual.rol !== 'padre') {
+            alert('⚠️ Acceso no autorizado.');
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('nombrePadre').textContent = `Bienvenido, ${usuarioActual.nombre}`;
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioActual');
+            window.location.href = 'login.html';
+        }
+
+        function cargarProfesoresRegistrados() {
+            let usuarios = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+            let profesores = usuarios.filter(u => u.rol === 'profesor');
+            const select = document.getElementById('selectProfesorPadre');
+
+            if (profesores.length === 0) {
+                select.innerHTML = '<option value="">No hay profesores registrados</option>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">Selecciona un profesor...</option>' + 
+                profesores.map(p => `<option value="${p.nombre}">${p.nombre} (${p.correo})</option>`).join('');
+        }
+
+        function enviarMensajePadre(e) {
+            e.preventDefault();
+            const profesorSeleccionado = document.getElementById('selectProfesorPadre').value;
+            if (!profesorSeleccionado) {
+                alert('⚠️ Debe seleccionar un profesor.');
+                return;
+            }
+
+            const nuevoMensaje = {
+                id: Date.now(),
+                curso: 'General',
+                autor: usuarioActual.nombre,
+                rol: 'Padre',
+                destinatario: profesorSeleccionado,
+                materia: document.getElementById('materiaMensajePadre').value,
+                mensaje: document.getElementById('textoMensajePadre').value,
+                respuesta: ''
+            };
+
+            let dudas = JSON.parse(localStorage.getItem('dudasAgenda')) || [];
+            dudas.push(nuevoMensaje);
+            localStorage.setItem('dudasAgenda', JSON.stringify(dudas));
+            alert('¡Mensaje enviado con éxito!');
+            e.target.reset();
+            cargarMensajesPadre();
+        }
+
+        function enviarRespuestaDirecta(id) {
+            const textoResp = document.getElementById(`respInput_${id}`).value;
+            if(!textoResp.trim()) return alert('Escribe una respuesta');
+
+            let dudas = JSON.parse(localStorage.getItem('dudasAgenda')) || [];
+            let index = dudas.findIndex(d => d.id === id);
+            if(index !== -1) {
+                dudas[index].respuesta = (dudas[index].respuesta ? dudas[index].respuesta + '<br>' : '') + `<strong>${usuarioActual.nombre}:</strong> ${textoResp}`;
+                localStorage.setItem('dudasAgenda', JSON.stringify(dudas));
+                cargarMensajesPadre();
+            }
+        }
+
+        function cargarMensajesPadre() {
+            let dudas = JSON.parse(localStorage.getItem('dudasAgenda')) || [];
+            let misMensajes = dudas.filter(d => d.autor === usuarioActual.nombre || d.destinatario === usuarioActual.nombre);
+            const contenedor = document.getElementById('historialMensajesPadre');
+
+            if (misMensajes.length === 0) {
+                contenedor.innerHTML = '<p style="color: #64748b; font-size: 13px;">No hay mensajes en tu bandeja.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = misMensajes.map(d => `
+                <div class="msg-item">
+                    <p style="font-size:13px; color:#1e3a8a;"><strong>De:</strong> ${d.autor} (${d.rol}) ➡️ <strong>Para:</strong> ${d.destinatario} | <strong>Materia:</strong> ${d.materia}</p>
+                    <p style="font-size:14px; margin: 6px 0;">${d.mensaje}</p>
+                    <div style="background: #ffffff; padding: 8px; border-radius: 6px; margin-top: 6px; border: 1px dashed #cbd5e1;">
+                        <p style="font-size:13px; color: #16a34a;"><strong>Historial de Respuestas:</strong><br>${d.respuesta || 'Sin respuestas aún.'}</p>
+                        <div style="display: flex; gap: 5px; margin-top: 8px;">
+                            <input type="text" id="respInput_${d.id}" placeholder="Escribe una respuesta..." style="flex:1; padding: 6px; font-size:12px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            <button onclick="enviarRespuestaDirecta(${d.id})" class="btn-primary" style="padding: 6px 12px; font-size:12px;">Responder</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.onload = function() {
+            cargarProfesoresRegistrados();
+            cargarMensajesPadre();
+        };
+    </script>
+</body>
+</html>

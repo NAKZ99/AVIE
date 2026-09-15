@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - AVIE</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; color: #334155; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .profile-container { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 600px; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .header-flex h1 { color: #1e3a8a; font-size: 22px; }
+        .btn-regresar { background-color: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; text-decoration: none; }
+        
+        .section-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .section-box h3 { font-size: 16px; color: #1e3a8a; margin-bottom: 12px; }
+        
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 4px; color: #475569; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        
+        .btn-warning { background-color: #d97706; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-delete { background-color: #dc2626; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        .info-row { font-size: 14px; margin-bottom: 8px; color: #475569; }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="header-flex">
+            <h1>Configuración de Perfil</h1>
+            <a id="btnVolver" href="#" class="btn-regresar">Volver al Panel</a>
+        </div>
+
+        <div class="section-box">
+            <h3>Datos Personales</h3>
+            <div class="info-row" id="infoNombre"><strong>Nombre:</strong> </div>
+            <div class="info-row" id="infoCorreo"><strong>Correo:</strong> </div>
+            <div class="info-row" id="infoRol"><strong>Tipo de Cuenta:</strong> </div>
+            <div class="info-row" id="infoCurso" style="display: none;"><strong>Curso:</strong> </div>
+        </div>
+
+        <div class="section-box">
+            <h3>Cambiar Contraseña</h3>
+            <form onsubmit="cambiarContrasena(event)">
+                <div class="form-group">
+                    <label for="nuevaContrasena">Nueva Contraseña</label>
+                    <input type="password" id="nuevaContrasena" placeholder="Mínimo 6 caracteres" required>
+                </div>
+                <button type="submit" class="btn-warning">Actualizar Contraseña</button>
+            </form>
+        </div>
+
+        <div class="section-box" style="border-color: #fca5a5;">
+            <h3 style="color: #dc2626;">Zona de Peligro</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Eliminar tu cuenta borrará tus datos y accesos de forma permanente de la plataforma.</p>
+            <button type="button" class="btn-delete" onclick="eliminarCuenta()">Eliminar mi Cuenta</button>
+        </div>
+    </div>
+
+    <script>
+        let usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
+
+        if (!usuarioActual) {
+            alert('⚠️ No hay una sesión activa.');
+            window.location.href = 'login.html';
+        }
+
+        const btnVolver = document.getElementById('btnVolver');
+        if (usuarioActual.rol === 'profesor') btnVolver.href = 'profesor.html';
+        else if (usuarioActual.rol === 'estudiante') btnVolver.href = 'estudiante.html';
+        else if (usuarioActual.rol === 'padre') btnVolver.href = 'padre.html';
+
+        document.getElementById('infoNombre').innerHTML = `<strong>Nombre:</strong> ${usuarioActual.nombre}`;
+        document.getElementById('infoCorreo').innerHTML = `<strong>Correo:</strong> ${usuarioActual.correo}`;
+        document.getElementById('infoRol').innerHTML = `<strong>Tipo de Cuenta:</strong> ${usuarioActual.rol.toUpperCase()}`;
+        
+        if (usuarioActual.rol === 'estudiante' && usuarioActual.curso) {
+            const divCurso = document.getElementById('infoCurso');
+            divCurso.style.display = 'block';
+            divCurso.innerHTML = `<strong>Curso:</strong> ${usuarioActual.curso}`;
+        }
+
+        function cambiarContrasena(e) {
+            e.preventDefault();
+            const nuevaPass = document.getElementById('nuevaContrasena').value.trim();
+            if (nuevaPass.length < 6) {
+                alert('⚠️ La contraseña debe tener al menos 6 caracteres.');
+                return;
+            }
+
+            usuarioActual.contrasena = nuevaPass;
+            localStorage.setItem('usuarioActual', JSON.stringify(usuarioActual));
+
+            let usuarios = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+            let index = usuarios.findIndex(u => u.correo === usuarioActual.correo);
+            if (index !== -1) {
+                usuarios[index].contrasena = nuevaPass;
+                localStorage.setItem('usuariosAgenda', JSON.stringify(usuarios));
+            }
+
+            alert('¡Contraseña actualizada con éxito!');
+            document.getElementById('nuevaContrasena').value = '';
+        }
+
+        function eliminarCuenta() {
+            if (confirm('¿Estás totalmente seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.')) {
+                let usuarios = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+                usuarios = usuarios.filter(u => u.correo !== usuarioActual.correo);
+                localStorage.setItem('usuariosAgenda', JSON.stringify(usuarios));
+                localStorage.removeItem('usuarioActual');
+                alert('Tu cuenta ha sido eliminada.');
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>
