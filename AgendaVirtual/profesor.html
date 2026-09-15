@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVIE - Panel Docente</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 30px 15px; display: flex; justify-content: center; }
+        .dashboard { background: var(--card-bg); width: 100%; max-width: 850px; padding: 30px; border-radius: var(--radius); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 25px; }
+        .nav-links { display: flex; gap: 12px; align-items: center; }
+        .nav-links a { color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12); }
+        .btn { padding: 11px 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: var(--success-hover); }
+        .btn-danger { background: var(--danger); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; }
+        .section-title { margin-top: 35px; margin-bottom: 15px; font-size: 1.2rem; border-left: 4px solid var(--primary); padding-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div>
+                <h2>AVIE</h2>
+                <p style="color: var(--muted); font-size: 0.9rem;">Panel Docente</p>
+            </div>
+            <div class="nav-links">
+                <a href="perfil.html">👤 Mi Perfil</a>
+                <button type="button" class="btn-danger" style="padding: 8px 14px;" onclick="cerrarSesion()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <h3 class="section-title">Publicar Nueva Actividad</h3>
+        <form onsubmit="procesarPublicacion(event)">
+            <div class="form-group">
+                <label>Título de la Actividad</label>
+                <input type="text" id="pubTitulo" required>
+            </div>
+            <div class="form-group">
+                <label>Curso Destino</label>
+                <select id="pubCurso" required>
+                    <option value="">Selecciona curso...</option>
+                    <option value="11° A">11° A</option>
+                    <option value="11° B">11° B</option>
+                    <option value="10° A">10° A</option>
+                    <option value="10° B">10° B</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Instrucciones</label>
+                <textarea id="pubDescripcion" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Adjuntar Archivo (Máx 2MB)</label>
+                <input type="file" id="pubArchivo">
+            </div>
+            <button type="submit" id="btnPublicar" class="btn">Publicar Actividad</button>
+        </form>
+
+        <h3 class="section-title">Actividades Publicadas</h3>
+        <div id="listaActividadesDocente"></div>
+
+        <h3 class="section-title">Asignar Nota a Estudiante</h3>
+        <form onsubmit="guardarNota(event)">
+            <div class="form-group">
+                <label>Correo del Estudiante</label>
+                <input type="email" id="notaCorreo" required placeholder="estudiante@correo.com">
+            </div>
+            <div class="form-group">
+                <label>Materia / Actividad</label>
+                <input type="text" id="notaMateria" required placeholder="Ej: Taller de Física">
+            </div>
+            <div class="form-group">
+                <label>Calificación (0.0 - 5.0)</label>
+                <input type="number" id="notaValor" step="0.1" min="0" max="5" required>
+            </div>
+            <button type="submit" class="btn btn-success">Registrar Nota</button>
+        </form>
+
+        <h3 class="section-title">Enviar Mensaje Directo</h3>
+        <form onsubmit="procesarEnvioMensaje(event)">
+            <div class="form-group">
+                <label>Correo Destinatario</label>
+                <input type="email" id="msgDestinatario" required placeholder="correo@ejemplo.com">
+            </div>
+            <div class="form-group">
+                <label>Asunto</label>
+                <input type="text" id="msgAsunto" required>
+            </div>
+            <div class="form-group">
+                <label>Mensaje</label>
+                <textarea id="msgContenido" rows="2" required></textarea>
+            </div>
+            <button type="submit" class="btn">Enviar Mensaje</button>
+        </form>
+
+        <h3 class="section-title">Buzón de Entrada</h3>
+        <div id="buzonMensajes"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        const usuario = obtenerUsuarioActual();
+        if (!usuario || usuario.rol !== 'profesor') window.location.href = 'index.html';
+
+        async function procesarPublicacion(e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btnPublicar');
+            
+            try {
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = 'Publicando...';
+
+                const titulo = document.getElementById('pubTitulo').value;
+                const curso = document.getElementById('pubCurso').value;
+                const descripcion = document.getElementById('pubDescripcion').value;
+                const inputArchivo = document.getElementById('pubArchivo');
+                
+                let archivoBase64 = null, nombreArchivo = null;
+
+                if (inputArchivo.files.length > 0) {
+                    const file = inputArchivo.files[0];
+                    nombreArchivo = file.name;
+                    archivoBase64 = await convertirArchivoBase64(file);
+                }
+
+                let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+                tareas.push({
+                    id: Date.now(),
+                    titulo, curso, descripcion,
+                    profesor: usuario.nombre || 'Docente',
+                    profesorCorreo: usuario.correo,
+                    archivo: archivoBase64,
+                    nombreArchivo: nombreArchivo,
+                    fecha: new Date().toLocaleDateString()
+                });
+
+                localStorage.setItem('tareasAgenda', JSON.stringify(tareas));
+                alert('¡Actividad publicada exitosamente!');
+                
+                e.target.reset();
+                cargarActividades();
+            } catch (error) {
+                alert('No se pudo publicar: ' + error.message);
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Publicar Actividad';
+            }
+        }
+
+        function cargarActividades() {
+            let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            let misTareas = tareas.filter(t => t.profesorCorreo === usuario.correo);
+            const contenedor = document.getElementById('listaActividadesDocente');
+
+            if (misTareas.length === 0) {
+                contenedor.innerHTML = '<p style="color:var(--muted); font-size:0.9rem;">No has publicado actividades aún.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            misTareas.reverse().forEach(t => {
+                let adjunto = t.archivo ? `<p style="margin-top:5px;"><a href="${t.archivo}" download="${t.nombreArchivo}" style="color:var(--primary); font-weight:600; text-decoration:none;">📎 Descargar (${t.nombreArchivo})</a></p>` : '';
+                contenedor.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="font-size:1.05rem;">${t.titulo} <span style="font-size:0.85rem; color:var(--muted);">(${t.curso})</span></strong>
+                            <button type="button" class="btn-danger" onclick="eliminarActividad(${t.id})">Eliminar</button>
+                        </div>
+                        <p style="margin:8px 0; color:#334155;">${t.descripcion}</p>
+                        ${adjunto}
+                        <small style="color:var(--muted);">Fecha: ${t.fecha}</small>
+                    </div>`;
+            });
+        }
+
+        function eliminarActividad(id) {
+            if (confirm('¿Deseas eliminar esta actividad?')) {
+                let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+                tareas = tareas.filter(t => t.id !== id);
+                localStorage.setItem('tareasAgenda', JSON.stringify(tareas));
+                cargarActividades();
+            }
+        }
+
+        function guardarNota(e) {
+            e.preventDefault();
+            const correo = document.getElementById('notaCorreo').value.trim().toLowerCase();
+            const materia = document.getElementById('notaMateria').value;
+            const valor = document.getElementById('notaValor').value;
+
+            let notas = JSON.parse(localStorage.getItem('notasAgenda')) || [];
+            notas.push({ id: Date.now(), estudianteCorreo: correo, materia, valor, fecha: new Date().toLocaleDateString() });
+            localStorage.setItem('notasAgenda', JSON.stringify(notas));
+            alert('¡Nota registrada exitosamente!');
+            document.getElementById('notaCorreo').value = '';
+            document.getElementById('notaMateria').value = '';
+            document.getElementById('notaValor').value = '';
+        }
+
+        function procesarEnvioMensaje(e) {
+            e.preventDefault();
+            enviarMensaje(
+                document.getElementById('msgDestinatario').value.trim().toLowerCase(),
+                document.getElementById('msgAsunto').value,
+                document.getElementById('msgContenido').value
+            );
+            document.getElementById('msgDestinatario').value = '';
+            document.getElementById('msgAsunto').value = '';
+            document.getElementById('msgContenido').value = '';
+            cargarBuzon();
+        }
+
+        function cargarBuzon() {
+            let mensajes = JSON.parse(localStorage.getItem('mensajesAgenda')) || [];
+            let misMensajes = mensajes.filter(m => m.destinatarioCorreo.toLowerCase() === usuario.correo.toLowerCase());
+            const contenedor = document.getElementById('buzonMensajes');
+            
+            if (misMensajes.length === 0) {
+                contenedor.innerHTML = '<p style="color:var(--muted); font-size:0.9rem;">No tienes mensajes recibidos.</p>';
+                return;
+            }
+            contenedor.innerHTML = '';
+            misMensajes.reverse().forEach(m => {
+                contenedor.innerHTML += `
+                    <div class="card" style="border-left: 4px solid var(--success);">
+                        <strong>De: ${m.remitente} (${m.remitenteCorreo})</strong>
+                        <p style="margin:4px 0;"><strong>Asunto:</strong> ${m.asunto}</p>
+                        <p style="color:#334155;">${m.contenido}</p>
+                        <small style="color:var(--muted);">${m.fecha}</small>
+                    </div>`;
+            });
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioActual');
+            window.location.href = 'index.html';
+        }
+
+        cargarActividades();
+        cargarBuzon();
+    </script>
+</body>
+</html>

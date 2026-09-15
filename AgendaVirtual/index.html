@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVIE - Iniciar Sesión</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --accent-hover: #2980b9;
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --text-muted: #7f8c8d;
+            --border: #dcdde1;
+            --radius: 12px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 15px;
+        }
+
+        .login-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 450px;
+            padding: 35px 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin: auto;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #f0f3f6;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--primary);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .footer-text a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h1>AVIE</h1>
+        <p class="subtitle">Agenda Virtual Institucional Estudiantil</p>
+        
+        <h2>Iniciar Sesión</h2>
+        
+        <form id="loginForm" onsubmit="return procesarLogin(event)">
+            <div class="form-group">
+                <label for="correo">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="ejemplo@correo.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Tu contraseña" required>
+            </div>
+
+            <button type="submit" class="btn">Ingresar</button>
+        </form>
+
+        <p class="footer-text">
+            ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
+        </p>
+    </div>
+
+    <script>
+        function procesarLogin(e) {
+            e.preventDefault();
+            
+            const correoIngresado = document.getElementById('correo').value.trim().toLowerCase();
+            const contrasenaIngresada = document.getElementById('contrasena').value.trim();
+
+            let usuarios = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+
+            if (usuarios.length === 0) {
+                alert('⚠️ No hay usuarios registrados aún. Por favor regístrate primero.');
+                window.location.href = 'registro.html';
+                return false;
+            }
+
+            // Buscar usuario ignorando mayúsculas/minúsculas y espacios
+            let usuarioEncontrado = usuarios.find(u => 
+                u.correo.trim().toLowerCase() === correoIngresado && 
+                u.contrasena.trim() === contrasenaIngresada
+            );
+
+            if (usuarioEncontrado) {
+                // Guardar la sesión actual
+                localStorage.setItem('usuarioActual', JSON.stringify(usuarioEncontrado));
+                
+                // Redireccionar según el rol
+                if (usuarioEncontrado.rol === 'profesor') {
+                    window.location.href = 'profesor.html';
+                } else if (usuarioEncontrado.rol === 'estudiante') {
+                    window.location.href = 'estudiante.html';
+                } else if (usuarioEncontrado.rol === 'padre') {
+                    window.location.href = 'padre.html';
+                } else {
+                    alert('⚠️ Rol no reconocido.');
+                }
+            } else {
+                alert('⚠️ Correo o contraseña incorrectos. Verifica los datos ingresados.');
+            }
+        }
+    </script>
+
+</body>
+</html>

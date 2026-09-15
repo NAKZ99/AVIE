@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVIE - Mi Perfil</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 30px 15px; display: flex; justify-content: center; }
+        .container { background: var(--card-bg); width: 100%; max-width: 600px; padding: 30px; border-radius: var(--radius); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 25px; }
+        .form-group { margin-bottom: 18px; display: flex; flex-direction: column; }
+        label { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+        input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; }
+        input:disabled { background: #f1f5f9; color: var(--muted); cursor: not-allowed; }
+        .btn { padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; width: 100%; font-size: 0.95rem; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-secondary { background: #e2e8f0; color: var(--text); text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .danger-zone { margin-top: 35px; border-top: 1px dashed var(--danger); padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Mi Perfil</h2>
+            <a href="#" id="btnVolver" class="btn-secondary">Volver al Panel</a>
+        </div>
+
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="profNombre" disabled placeholder="Sin información">
+        </div>
+        <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="profCorreo" disabled placeholder="Sin información">
+        </div>
+        <div class="form-group">
+            <label>Rol</label>
+            <input type="text" id="profRol" disabled placeholder="Sin información">
+        </div>
+        <div class="form-group" id="grupoCurso" style="display:none;">
+            <label>Curso / Grado</label>
+            <input type="text" id="profCurso" disabled placeholder="Sin información">
+        </div>
+
+        <h3 style="margin: 25px 0 15px 0; font-size: 1.1rem;">Seguridad y Contraseña</h3>
+        <form onsubmit="procesarCambioPass(event)">
+            <div class="form-group">
+                <label>Nueva Contraseña</label>
+                <input type="password" id="nuevaPass" required placeholder="Escribe tu nueva contraseña">
+            </div>
+            <button type="submit" class="btn">Actualizar Contraseña</button>
+        </form>
+
+        <div class="danger-zone">
+            <h3 style="color: var(--danger); font-size: 1.05rem;">Zona de Peligro</h3>
+            <p style="font-size: 0.85rem; color: var(--muted); margin: 6px 0 12px 0;">Al eliminar la cuenta perderás todo tu historial registrado en el sistema.</p>
+            <button type="button" onclick="eliminarCuenta()" class="btn btn-danger">Eliminar Mi Cuenta</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const usuario = obtenerUsuarioActual();
+            
+            if (!usuario) {
+                alert('No se encontró información de usuario. Inicia sesión nuevamente.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('profNombre').value = usuario.nombre || '';
+            document.getElementById('profCorreo').value = usuario.correo || '';
+            document.getElementById('profRol').value = (usuario.rol || '').toUpperCase();
+
+            if (usuario.curso) {
+                document.getElementById('grupoCurso').style.display = 'flex';
+                document.getElementById('profCurso').value = usuario.curso;
+            }
+
+            const btnVolver = document.getElementById('btnVolver');
+            if (usuario.rol === 'profesor') btnVolver.href = 'profesor.html';
+            else if (usuario.rol === 'estudiante') btnVolver.href = 'estudiante.html';
+            else if (usuario.rol === 'padre') btnVolver.href = 'padre.html';
+            else btnVolver.href = 'index.html';
+        });
+
+        function procesarCambioPass(e) {
+            e.preventDefault();
+            const nueva = document.getElementById('nuevaPass').value.trim();
+            if (nueva.length < 4) {
+                alert('La contraseña debe tener al menos 4 caracteres.');
+                return;
+            }
+            cambiarContrasena(nueva);
+            document.getElementById('nuevaPass').value = '';
+        }
+    </script>
+</body>
+</html>

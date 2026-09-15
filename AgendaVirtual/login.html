@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVIE - Iniciar Sesión</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+    <div class="login-container">
+        <h1>AVIE</h1>
+        <p class="subtitle">Agenda Virtual Institucional Estudiantil</p>
+        
+        <h2>Iniciar Sesión</h2>
+        
+        <form id="loginForm" onsubmit="return procesarLogin(event)">
+            <div class="form-group">
+                <label for="correo">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="ejemplo@correo.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Tu contraseña" required>
+            </div>
+
+            <button type="submit" class="btn">Ingresar</button>
+        </form>
+
+        <p class="footer-text">
+            ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
+        </p>
+    </div>
+
+    <script>
+        function procesarLogin(e) {
+            e.preventDefault();
+            const correo = document.getElementById('correo').value.trim().toLowerCase();
+            const contrasena = document.getElementById('contrasena').value;
+
+            let usuarios = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+            let usuario = usuarios.find(u => u.correo === correo && u.contrasena === contrasena);
+
+            if (usuario) {
+                localStorage.setItem('usuarioActual', JSON.stringify(usuario));
+                if (usuario.rol === 'profesor') window.location.href = 'profesor.html';
+                else if (usuario.rol === 'estudiante') window.location.href = 'estudiante.html';
+                else if (usuario.rol === 'padre') window.location.href = 'padre.html';
+            } else {
+                alert('⚠️ Correo o contraseña incorrectos.');
+            }
+        }
+    </script>
+
+</body>
+</html>

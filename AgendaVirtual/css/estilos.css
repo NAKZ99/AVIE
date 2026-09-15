@@ -1,0 +1,211 @@
+/* ==========================================================================
+   ESTILOS GENERALES Y RESPONSIVOS DE AVIE
+   ========================================================================== */
+
+:root {
+    --primary: #2c3e50;
+    --accent: #3498db;
+    --accent-hover: #2980b9;
+    --bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #333333;
+    --text-muted: #7f8c8d;
+    --error: #e74c3c;
+    --success: #2ecc71;
+    --border: #dcdde1;
+    --radius: 12px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 15px;
+}
+
+/* Contenedores de Tarjetas */
+.login-container, .dashboard-container, .card {
+    background-color: var(--card-bg);
+    width: 100%;
+    max-width: 480px;
+    padding: 35px 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin: auto;
+}
+
+.dashboard-container {
+    max-width: 900px;
+}
+
+/* Tipografía */
+h1 {
+    color: var(--primary);
+    font-size: 2.2rem;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+}
+
+h2 {
+    font-size: 1.3rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 2px solid #f0f3f6;
+    padding-bottom: 10px;
+}
+
+/* Formularios */
+.form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--primary);
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fff;
+    transition: all 0.25s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* Botones */
+.btn {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    margin-top: 10px;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn:active {
+    transform: scale(0.99);
+}
+
+.btn-danger {
+    background-color: var(--error);
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+/* Links y Footer */
+.footer-text {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.footer-text a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-text a:hover {
+    text-decoration: underline;
+}
+
+.error-msg {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: none;
+}
+
+/* Secciones Internas y Datos */
+.info-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--accent);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 0 8px 8px 0;
+}
+
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Adaptabilidad para Móviles (Responsive) */
+@media (max-width: 600px) {
+    body {
+        padding: 12px 8px;
+    }
+
+    .login-container, .dashboard-container, .card {
+        padding: 25px 18px;
+        border-radius: 10px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.15rem;
+    }
+
+    input, select, .btn {
+        padding: 11px;
+        font-size: 0.95rem;
+    }
+
+    .user-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}

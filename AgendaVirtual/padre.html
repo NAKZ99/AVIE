@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVIE - Panel Acudiente</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 30px 15px; display: flex; justify-content: center; }
+        .dashboard { background: var(--card-bg); width: 100%; max-width: 850px; padding: 30px; border-radius: var(--radius); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 25px; }
+        .nav-links { display: flex; gap: 12px; align-items: center; }
+        .nav-links a { color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+        input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; }
+        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12); }
+        .btn { padding: 11px 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); color: white; border: none; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .card { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--success); border-radius: 8px; padding: 16px; margin-top: 12px; }
+        .section-title { margin-top: 35px; margin-bottom: 15px; font-size: 1.2rem; border-left: 4px solid var(--primary); padding-left: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid var(--border); padding: 10px; text-align: left; font-size: 0.95rem; }
+        th { background: #f1f5f9; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div>
+                <h2>AVIE</h2>
+                <p style="color: var(--muted); font-size: 0.9rem;">Acudiente: <strong id="nomPadre"></strong> (Curso: <span id="curPadre"></span>)</p>
+            </div>
+            <div class="nav-links">
+                <a href="perfil.html">👤 Mi Perfil</a>
+                <button type="button" class="btn-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <h3 class="section-title">Actividades del Curso</h3>
+        <div id="listaTareasPadre"></div>
+
+        <h3 class="section-title">Consultar Calificaciones del Estudiante</h3>
+        <div class="form-group">
+            <label>Correo del Estudiante</label>
+            <input type="email" id="correoConsulta" placeholder="Ingresa el correo del estudiante" oninput="consultarNotasPadre()">
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Materia / Actividad</th>
+                    <th>Nota</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody id="tablaNotasPadre">
+                <tr><td colspan="3" style="text-align:center; color:var(--muted);">Escribe un correo para filtrar sus notas.</td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Enviar Mensaje Directo</h3>
+        <form onsubmit="procesarEnvioMensaje(event)">
+            <div class="form-group">
+                <label>Correo Destinatario</label>
+                <input type="email" id="msgDestinatario" required placeholder="profesor@correo.com">
+            </div>
+            <div class="form-group">
+                <label>Asunto</label>
+                <input type="text" id="msgAsunto" required>
+            </div>
+            <div class="form-group">
+                <label>Mensaje</label>
+                <textarea id="msgContenido" rows="2" required></textarea>
+            </div>
+            <button type="submit" class="btn">Enviar Mensaje</button>
+        </form>
+
+        <h3 class="section-title">Buzón de Entrada</h3>
+        <div id="buzonMensajes"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        const usuario = obtenerUsuarioActual();
+        if (!usuario || usuario.rol !== 'padre') window.location.href = 'index.html';
+
+        document.getElementById('nomPadre').textContent = usuario.nombre || '';
+        document.getElementById('curPadre').textContent = usuario.curso || 'Sin curso';
+
+        function cargarTareas() {
+            let tareas = JSON.parse(localStorage.getItem('tareasAgenda')) || [];
+            let tareasFiltradas = tareas.filter(t => t.curso === usuario.curso);
+            const contenedor = document.getElementById('listaTareasPadre');
+            
+            if (tareasFiltradas.length === 0) {
+                contenedor.innerHTML = '<p style="color:var(--muted); font-size:0.9rem;">No hay actividades registradas para este curso.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            tareasFiltradas.reverse().forEach(t => {
+                let adjuntoHTML = t.archivo ? `<p style="margin-top:6px;"><a href="${t.archivo}" download="${t.nombreArchivo}" style="color:var(--primary); font-weight:600; text-decoration:none;">📎 Descargar (${t.nombreArchivo})</a></p>` : '';
+                contenedor.innerHTML += `
+                    <div class="card">
+                        <strong style="font-size:1.05rem;">${t.titulo}</strong>
+                        <p style="margin:8px 0; color:#334155;">${t.descripcion}</p>
+                        ${adjuntoHTML}
+                        <small style="color:var(--muted);">Profesor: ${t.profesor} | Publicado: ${t.fecha}</small>
+                    </div>`;
+            });
+        }
+
+        function consultarNotasPadre() {
+            const correoInput = document.getElementById('correoConsulta').value.trim().toLowerCase();
+            let notas = JSON.parse(localStorage.getItem('notasAgenda')) || [];
+            let notasEstudiante = notas.filter(n => n.estudianteCorreo.toLowerCase() === correoInput);
+            const tabla = document.getElementById('tablaNotasPadre');
+
+            if (!correoInput) {
+                tabla.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--muted);">Escribe un correo para filtrar sus notas.</td></tr>';
+                return;
+            }
+
+            if (notasEstudiante.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--muted);">No se encontraron calificaciones registradas para este correo.</td></tr>';
+                return;
+            }
+
+            tabla.innerHTML = '';
+            notasEstudiante.reverse().forEach(n => {
+                tabla.innerHTML += `
+                    <tr>
+                        <td>${n.materia}</td>
+                        <td><strong style="color:var(--primary);">${n.valor}</strong></td>
+                        <td>${n.fecha}</td>
+                    </tr>`;
+            });
+        }
+
+        function procesarEnvioMensaje(e) {
+            e.preventDefault();
+            enviarMensaje(
+                document.getElementById('msgDestinatario').value.trim().toLowerCase(),
+                document.getElementById('msgAsunto').value,
+                document.getElementById('msgContenido').value
+            );
+            document.getElementById('msgDestinatario').value = '';
+            document.getElementById('msgAsunto').value = '';
+            document.getElementById('msgContenido').value = '';
+            cargarBuzon();
+        }
+
+        function cargarBuzon() {
+            let mensajes = JSON.parse(localStorage.getItem('mensajesAgenda')) || [];
+            let misMensajes = mensajes.filter(m => m.destinatarioCorreo.toLowerCase() === usuario.correo.toLowerCase());
+            const contenedor = document.getElementById('buzonMensajes');
+            
+            if (misMensajes.length === 0) {
+                contenedor.innerHTML = '<p style="color:var(--muted); font-size:0.9rem;">No tienes mensajes recibidos.</p>';
+                return;
+            }
+            contenedor.innerHTML = '';
+            misMensajes.reverse().forEach(m => {
+                contenedor.innerHTML += `
+                    <div class="card">
+                        <strong>De: ${m.remitente} (${m.remitenteCorreo})</strong>
+                        <p style="margin:4px 0;"><strong>Asunto:</strong> ${m.asunto}</p>
+                        <p style="color:#334155;">${m.contenido}</p>
+                        <small style="color:var(--muted);">${m.fecha}</small>
+                    </div>`;
+            });
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioActual');
+            window.location.href = 'index.html';
+        }
+
+        cargarTareas();
+        cargarBuzon();
+    </script>
+</body>
+</html>

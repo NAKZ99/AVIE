@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVIE - Crear Cuenta</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --accent-hover: #2980b9;
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --text-muted: #7f8c8d;
+            --error: #e74c3c;
+            --border: #dcdde1;
+            --radius: 12px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 15px;
+        }
+
+        .login-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            padding: 35px 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin: auto;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #f0f3f6;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--primary);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .footer-text a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h1>AVIE</h1>
+        <p class="subtitle">Agenda Virtual Institucional Estudiantil</p>
+        
+        <h2>Crear nueva cuenta</h2>
+        
+        <form id="registroForm" onsubmit="return procesarRegistro(event)">
+            <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" placeholder="Tu nombre y apellido" required>
+            </div>
+
+            <div class="form-group">
+                <label for="correo">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="ejemplo@correo.com" required>
+                <span id="mensajeError" class="error-msg">Por favor, ingresa un correo electrónico válido.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="rol">Tipo de Cuenta</label>
+                <select id="rol" onchange="mostrarOpcionCurso()" required>
+                    <option value="">Selecciona tu rol...</option>
+                    <option value="profesor">👨‍🏫 Profesor</option>
+                    <option value="estudiante">👨‍🎓 Estudiante</option>
+                    <option value="padre">👨‍👩‍👦 Padre / Acudiente</option>
+                </select>
+            </div>
+
+            <div id="campo-curso-estudiante" class="form-group" style="display: none;">
+                <label for="curso">Curso / Grado</label>
+                <select id="curso">
+                    <option value="">Selecciona tu curso...</option>
+                    <option value="11° A">11° A</option>
+                    <option value="11° B">11° B</option>
+                    <option value="10° A">10° A</option>
+                    <option value="10° B">10° B</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Crea tu contraseña" required>
+            </div>
+
+            <button type="submit" class="btn">Registrarme e Ingresar</button>
+        </form>
+
+        <p class="footer-text">
+            ¿Ya tienes una cuenta? <a href="index.html">Inicia sesión aquí</a>
+        </p>
+    </div>
+
+    <script>
+        function mostrarOpcionCurso() {
+            const rol = document.getElementById('rol').value;
+            const campoCurso = document.getElementById('campo-curso-estudiante');
+            const selectCurso = document.getElementById('curso');
+            if (rol === 'estudiante') {
+                campoCurso.style.display = 'flex';
+                selectCurso.required = true;
+            } else {
+                campoCurso.style.display = 'none';
+                selectCurso.required = false;
+                selectCurso.value = '';
+            }
+        }
+
+        function procesarRegistro(e) {
+            e.preventDefault();
+            
+            const nombreInput = document.getElementById('nombre').value.trim();
+            const correoInput = document.getElementById('correo').value.trim().toLowerCase();
+            const rolSeleccionado = document.getElementById('rol').value;
+            const cursoSeleccionado = document.getElementById('curso').value;
+            const contrasenaInput = document.getElementById('contrasena').value;
+            const mensajeError = document.getElementById('mensajeError');
+            
+            const patronCorreo = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!patronCorreo.test(correoInput)) {
+                mensajeError.style.display = 'block';
+                return false;
+            }
+            mensajeError.style.display = 'none';
+
+            let usuariosGuardados = JSON.parse(localStorage.getItem('usuariosAgenda')) || [];
+
+            const existeCorreo = usuariosGuardados.some(u => u.correo === correoInput);
+            const existeNombre = usuariosGuardados.some(u => u.nombre.toLowerCase() === nombreInput.toLowerCase());
+
+            if (existeCorreo) {
+                alert('⚠️ Este correo electrónico ya está registrado.');
+                return false;
+            }
+
+            if (existeNombre) {
+                alert('⚠️ Ya existe un usuario registrado con este Nombre Completo.');
+                return false;
+            }
+
+            const nuevoUsuario = {
+                nombre: nombreInput,
+                correo: correoInput,
+                rol: rolSeleccionado,
+                curso: rolSeleccionado === 'estudiante' ? cursoSeleccionado : '',
+                contrasena: contrasenaInput
+            };
+
+            usuariosGuardados.push(nuevoUsuario);
+            localStorage.setItem('usuariosAgenda', JSON.stringify(usuariosGuardados));
+            localStorage.setItem('usuarioActual', JSON.stringify(nuevoUsuario));
+
+            alert('¡Registro exitoso!');
+
+            if (rolSeleccionado === 'profesor') {
+                window.location.href = 'profesor.html';
+            } else if (rolSeleccionado === 'estudiante') {
+                window.location.href = 'estudiante.html';
+            } else if (rolSeleccionado === 'padre') {
+                window.location.href = 'padre.html';
+            }
+        }
+    </script>
+
+</body>
+</html>
